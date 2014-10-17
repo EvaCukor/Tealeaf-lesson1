@@ -1,15 +1,17 @@
 # PAPER ROCK SCISSORS
 
+require 'pry'
+
 puts "Play Paper-Rock-Scissors!"
 
-def game()
+def game
   # prompt player to enter their choice
   puts "Please enter 'P', 'R' or 'S' to choose between paper, rock and scissors."
   player_choice = gets.chomp.upcase 
 
   # check player input; if ok, continue game, if not, restart game
   if !((player_choice == "P") || (player_choice == "R") || (player_choice == "S"))
-    game()
+    game
   else
     # generate computer choice
     choices = ["P", "R", "S"]
@@ -25,23 +27,8 @@ def game()
     end
 
     # match complete word with player and computer choices for later messages
-    if player_choice == "P"
-      player_choice_full = "Paper"
-    elsif player_choice == "R"
-      player_choice_full = "Rock"
-    elsif player_choice == "S"
-      player_choice_full = "Scissors"
-    end
-      if comp_choice == "P"
-      comp_choice_full = "Paper"
-    elsif comp_choice == "R"
-      comp_choice_full = "Rock"
-    elsif comp_choice == "S"
-      comp_choice_full = "Scissors"
-    end
-    
     # notify user of game choices and the result
-    puts "You picked #{player_choice_full} and the computer picked #{comp_choice_full}."
+    puts "You picked #{choice_full_word(player_choice)} and the computer picked #{choice_full_word(comp_choice)}."
     
     if result == "tie"
       puts "It's a tie."
@@ -55,19 +42,27 @@ def game()
   # ask user whether to continue playing
   # if yes, restart the game
   # if not, stop the game  
-  x = false
-  while x == false
+  stop_playing = false
+  unless stop_playing
     puts "Play again? (Y/N)"
     game_cont = gets.chomp.upcase
     if game_cont == "Y"
-      x = true
-      game()
-    elsif game_cont == "N"
-      x = true
-    else 
-      x = false
+      game
+    else
+      stop_playing = true
     end
   end
 end
 
-game()
+def choice_full_word(letter)
+  if letter == "P"
+    full_word = "Paper"
+  elsif letter == "R"
+    full_word = "Rock"
+  elsif letter == "S"
+    full_word = "Scissors"
+  end
+  full_word  
+end
+
+game
