@@ -1,132 +1,161 @@
-def deal_cards(deck, target)
-  target.push(deck.keys.sample)
-  deck[target[-1]][1] -= 1
-  if deck[target[-1]][1] == 0
-    deal_cards(deck, target)
-  end
-end
+# Interactive command line blackjack game
 
-def calc_cards_value_dealer(deck, dealt_cards)
-  sum = 0
-  dealt_cards.each do |card|
-    sum += deck[card][0]
-  end
-  sum
-end
 
-def calc_cards_value_player(deck, dealt_cards)
-  sum = 0
-  dealt_cards.each do |card|
-    sum += deck[card][0]
-  end
-  if dealt_cards.include?("ace") && sum > 21
-    sum -= 10
-  end
-  sum
-end
+def calculate_total(cards) 
+  # [['H', '3'], ['S', 'Q'], ... ]
+  arr = cards.map{|e| e[1] }
 
-def notify_player(dealt_cards, cards_total)
-  dealt_cards.each do |card|
-    index = dealt_cards.index(card). + 1
-    puts index.to_s + ". #{card}"    
-  end
-  puts "Their total value is: #{cards_total}."
-end
-
-def declare_winner(cards_total)
-  if cards_total == 21
-    puts "You won!"
-  elsif cards_total > 21
-    puts "Unfortunately, you lost."
-  end
-end
-
-cards = {"two" => [2, 4], "three" => [3, 4], "four" => [4, 4], "five" => [5, 4], "six" => [6, 4], "seven" => [7, 4], "eight" => [8, 4], 
-          "nine" => [9, 4], "ten" => [10, 4], "jack" => [10, 4], "queen" => [10, 4], "king" => [10, 4], "ace" => [11, 4]}
-
-choices = ["hit", "stay"]
-
-player_cards = []
-dealer_cards = []
-
-puts "Welcome to the Blackjack game! What is your name?"
-player_name = gets.chomp.capitalize
-puts "Hi, #{player_name}! The dealer will start the game now.\n\n\n"
-
-sleep(1)
-
-player_total = 0
-dealer_total = 0
-winner = false
-while !winner do
-  deal_cards(cards, player_cards)
-  deal_cards(cards, dealer_cards)
-  deal_cards(cards, player_cards)
-  deal_cards(cards, dealer_cards)
-  player_total = calc_cards_value_player(cards, player_cards)
-  puts "Your cards are:"
-  notify_player(player_cards, player_total)
-  declare_winner(player_total)
-  if player_total >= 21
-    winner = true
-  end    
-  while (player_total < 21) && (dealer_total < 21)
-    player_choice = ""
-    while (player_choice != "H") && (player_choice != "S") do
-      puts "Would you like to hit or stay? (H/S)"
-      player_choice = gets.chomp.upcase
-    end
-    if player_choice == "H"
-      deal_cards(cards, player_cards)
-      player_total = calc_cards_value_player(cards, player_cards)
-      puts "Your cards are:"
-      notify_player(player_cards, player_total)
-      declare_winner(player_total)
-      if player_total >= 21
-        winner = true
-      end
-    elsif player_choice == "S"
-      while dealer_total < 17
-        deal_cards(cards, dealer_cards)
-        dealer_total = calc_cards_value_dealer(cards, dealer_cards)
-        puts "The dealer's cards are:"
-        notify_player(dealer_cards, dealer_total)
-        if dealer_total < 17
-          puts "The total value of the dealer's cards is less than 17 so she will deal again.\n\n"
-        end
-        sleep (1)
-      end
-      if (dealer_total >= 17) && (dealer_total < 21)
-        dealer_choice = choices.sample
-        sleep(1)
-        if dealer_choice == "hit"
-          puts "\nThe dealer has decided to #{dealer_choice}."
-          deal_cards(cards, dealer_cards)
-          dealer_total = calc_cards_value_dealer(cards, dealer_cards)
-          sleep(1)
-          puts "\nThe dealer's cards are:"
-          notify_player(dealer_cards, dealer_total)
-          sleep(1)
-          if dealer_total < 21
-            dealer_choice = choices.sample
-          end
-        elsif dealer_choice == "stay"
-          puts "\nThe dealer has decided to #{dealer_choice}."
-          sleep (1)
-          if dealer_total > player_total
-            puts "\nUnfortunately, the total value of the dealer's cards is greater than yours and you've lost."
-          else
-            puts "\nThe value of your cards is greater than the value of the dealer's cards. You've won!"
-          end
-        end
-      elsif dealer_total == 21
-        puts "\nThe dealer has reached the value of 21. Unfortunately, you've lost." 
-      elsif dealer_total > 21
-        puts "\nThe value of the dealer's cards is greater than 21. You've won!"
-      else
-        puts "\nIt's a tie."
-      end
-      winner = true
+  total = 0
+  arr.each do |value|
+    if value == "A"
+      total += 11
+    elsif value.to_i == 0 # J, Q, K
+      total += 10
+    else
+      total += value.to_i
     end
   end
+
+  #correct for Aces
+  arr.select{|e| e == "A"}.count.times do
+    total -= 10 if total > 21
+  end
+
+  total
 end
+
+# Start Game
+
+puts "Welcome to Blackjack!"
+
+suits = ['H', 'D', 'S', 'C']
+cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
+deck = suits.product(cards)
+deck.shuffle!
+
+# Deal Cards
+
+mycards = []
+dealercards = []
+
+mycards << deck.pop
+dealercards << deck.pop
+mycards << deck.pop
+dealercards << deck.pop
+
+dealertotal = calculate_total(dealercards)
+mytotal = calculate_total(mycards)
+
+# Show Cards
+
+puts "Dealer has: #{dealercards[0]} and #{dealercards[1]}, for a total of #{dealertotal}"
+puts "You have: #{mycards[0]} and #{mycards[1]}, for a total of: #{mytotal}"
+puts ""
+
+# Player turn
+if mytotal == 21
+  puts "Congratulations, you hit blackjack! You win!"
+  exit
+end
+
+while mytotal < 21
+  puts "What would you like to do? 1) hit 2) stay"
+  hit_or_stay = gets.chomp
+
+  if !['1', '2'].include?(hit_or_stay)
+    puts "Error: you must enter 1 or 2"
+    next
+  end
+
+  if hit_or_stay == "2"
+    puts "You chose to stay."
+    break
+  end
+
+  #hit
+  new_card = deck.pop
+  puts "Dealing card to player: #{new_card}"
+  mycards << new_card
+  mytotal = calculate_total(mycards)
+  puts "Your total is now: #{mytotal}"
+
+  if mytotal == 21
+    puts "Congratulations, you hit blackjack! You win!"
+    exit
+  elsif mytotal > 21
+    puts "Sorry, it looks like you busted!"
+    exit
+  end
+end
+
+# Dealer turn
+
+if dealertotal == 21
+  puts "Sorry, dealer hit blackjack. You lose."
+  exit
+end
+
+while dealertotal < 17
+  #hit
+  new_card = deck.pop
+  puts "Dealing new card for dealer: #{new_card}"
+  dealercards << new_card
+  dealertotal = calculate_total(dealercards)
+  puts "Dealer total is now: #{dealertotal}"
+
+  if dealertotal == 21
+    puts "Sorry, dealer hit blackjack. You lose."
+    exit
+  elsif dealertotal > 21
+    puts "Congratulations, dealer busted! You win!"
+    exit
+  end
+end
+
+# Compare hands
+
+puts "Dealer's cards: "
+dealercards.each do |card|
+  puts "=> #{card}"
+end
+puts ""
+
+puts "Your cards:"
+mycards.each do |card|
+  puts "=> #{card}"
+end
+puts ""
+
+if dealertotal > mytotal
+  puts "Sorry, dealer wins."
+elsif dealertotal < mytotal
+  puts "Congratulations, you win!"
+else
+  puts "It's a tie!"
+end
+
+exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
